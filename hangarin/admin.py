@@ -1,0 +1,47 @@
+from django.contrib import admin
+
+from .models import Category, Note, Priority, SubTask, Task
+
+admin.site.site_header = "Hangarin Administration"
+admin.site.site_title = "Hangarin Admin"
+admin.site.index_title = "Task & To-Do Manager"
+
+
+@admin.register(Task)
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ("title", "status", "deadline", "priority", "category")
+    list_filter = ("status", "priority", "category")
+    search_fields = ("title", "description")
+    autocomplete_fields = ("priority", "category")
+
+
+@admin.register(SubTask)
+class SubTaskAdmin(admin.ModelAdmin):
+    list_display = ("title", "status", "parent_task_name")
+    list_filter = ("status",)
+    search_fields = ("title",)
+    autocomplete_fields = ("parent_task",)
+
+    @admin.display(ordering="parent_task__title", description="Parent task")
+    def parent_task_name(self, obj):
+        return obj.parent_task.title
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
+
+
+@admin.register(Priority)
+class PriorityAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
+
+
+@admin.register(Note)
+class NoteAdmin(admin.ModelAdmin):
+    list_display = ("task", "content", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("content",)
+    autocomplete_fields = ("task",)

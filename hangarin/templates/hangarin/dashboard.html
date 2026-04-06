@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}Hangarin Workspace{% endblock %}
+
+{% block body %}
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="sidebar-brand" href="{{ dashboard_url }}">
+      <span class="sidebar-brand-text">
+        <span class="sidebar-brand-title">Hangarin</span>
+      </span>
+    </a>
+
+    <section class="sidebar-panel">
+      <p class="sidebar-caption">Navigation</p>
+      <nav class="sidebar-nav">
+        {% for item in main_nav %}
+        <a class="sidebar-link {% if item.active %}is-active{% endif %}" href="{{ item.url }}">
+          <span class="sidebar-link-dot"></span>
+          <span>{{ item.label }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+    </section>
+
+    <section class="sidebar-footer">
+
+      <div class="sidebar-user">
+        <div class="user-avatar">{{ request.user.username|slice:":1"|upper }}</div>
+        <div class="user-info">
+          <span class="user-name">{{ request.user.username }}</span>
+          <span class="user-date">{{ today|date:"M d, Y" }}</span>
+        </div>
+      </div>
+      <form method="post" action="{% url 'logout' %}" class="logout-form">
+        {% csrf_token %}
+        <button type="submit" class="sidebar-logout-button">
+          <span>Log Out</span>
+        </button>
+      </form>
+    </section>
+  </aside>
+
+  <main class="workspace">
+    <main class="workspace">
+      {% if active_tab == "dashboard" %}
+      <header class="workspace-header">
+        <div>
+          <h1 class="page-title">{{ panel_title }}</h1>
+          <p class="page-copy">{{ panel_copy }}</p>
+        </div>
+        <a class="primary-button" href="{{ panel_action_url }}">{{ panel_action_label }}</a>
+      </header>
+      <section class="stats-grid">
+        {% for item in dashboard_stats %}
+        <article class="stat-card">
+          <span class="stat-label">{{ item.label }}</span>
+          <strong class="stat-value">{{ item.value }}</strong>
+        </article>
+        {% endfor %}
+      </section>
+
+      <section class="dashboard-grid dashboard-grid-top">
+        <article class="surface-card">
+          <div class="surface-head">
+            <div>
+              <p class="surface-kicker">Status Flow</p>
+              <h2 class="surface-title">Task Status Overview</h2>
+            </div>
+            <span class="surface-chip">{{ completion_rate }}% complete</span>
+          </div>
+
+          <div class="meter-list">
+            {% for item in status_flow %}
+            <div class="meter-item">
+              <div class="meter-meta">
+                <span>{{ item.label }}</span>
+                <span>{{ item.count }} tasks &middot; {{ item.percent }}%</span>
+              </div>
+              <div class="meter-track">
+                <span class="{{ item.bar_class }}" style="width: {{ item.percent }}%;"></span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="surface-card">
+          <div class="surface-head">
+            <div>
+              <p class="surface-kicker">Category Layout</p>
+              <h2 class="surface-title">Top Categories</h2>
+            </div>
+            <span class="surface-chip">{{ dashboard_categories|length }} shown</span>
+          </div>
+
+          <div class="list-stack">
+            {% for category in dashboard_categories %}
+            <div class="list-row">
+              <div>
+                <div class="row-title">{{ category.name }}</div>
+                <div class="row-copy">{{ category.completed_count }} completed task{{ category.completed_count|pluralize
+                  }}</div>
+              </div>
+              <div class="list-row-meta">{{ category.task_count }} task{{ category.task_count|pluralize }}</div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+              <p class="mb-0">No categories available.</p>
+            </div>
+            {% endfor %}
+          </div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="surface-card">
+          <div class="surface-head">
+            <div>
+              <p class="surface-kicker">Recent Activity</p>
+              <h2 class="surface-title">Latest Task Updates</h2>
+            </div>
+            <span class="surface-chip">{{ recent_task_updates|length }} items</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="workspace-table">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Status</th>
+                  <th>Category</th>
+                  <th>Priority</th>
+                  <th>Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for task in recent_task_updates %}
+                <tr>
+                  <td>
+                    <div class="row-title">{{ task.title }}</div>
+                    <div class="row-copy">{{ task.description|truncatechars:88 }}</div>
+                  </td>
+                  <td><span class="{{ task.status_badge }}">{{ task.status }}</span></td>
+                  <td>{{ task.category.name }}</td>
+                  <td><span class="{{ task.priority_badge }}">{{ task.priority.name|title }}</span></td>
+                  <td>{{ task.updated_at|date:"M d, Y" }} - {{ task.updated_at|date:"h:i A" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <p class="mb-0">No tasks available yet.</p>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <div class="stack-column">
+          <article class="surface-card">
+            <div class="surface-head">
+              <div>
+                <p class="surface-kicker">Schedule Watch</p>
+                <h2 class="surface-title">Upcoming Deadlines</h2>
+              </div>
+              <span class="surface-chip">{{ week_due_count }} due in 7 days</span>
+            </div>
+
+            <div class="list-stack">
+              {% for task in upcoming_deadlines %}
+              <div class="deadline-card">
+                <div>
+                  <div class="row-title">{{ task.title }}</div>
+                  <div class="row-copy">{{ task.deadline_local|date:"M d, Y" }} - {{ task.deadline_local|date:"h:i A" }}
+                  </div>
+                </div>
+                <span class="{{ task.deadline_state_class }}">{{ task.deadline_state }}</span>
+              </div>
+              {% empty %}
+              <div class="empty-state">
+                <p class="mb-0">No upcoming deadlines.</p>
+              </div>
+              {% endfor %}
+            </div>
+          </article>
+
+          <article class="surface-card">
+            <div class="surface-head">
+              <div>
+                <p class="surface-kicker">Note Feed</p>
+                <h2 class="surface-title">Recent Notes</h2>
+              </div>
+              <span class="surface-chip">{{ dashboard_recent_notes|length }} notes</span>
+            </div>
+
+            <div class="list-stack">
+              {% for note in dashboard_recent_notes %}
+              <div class="list-row">
+                <div>
+                  <div class="row-title">{{ note.task.title }}</div>
+                  <div class="row-copy">{{ note.content|truncatechars:96 }}</div>
+                </div>
+                <a class="action-button action-button-soft" href="{{ note.edit_url }}">Edit</a>
+              </div>
+              {% empty %}
+              <div class="empty-state">
+                <p class="mb-0">No notes available.</p>
+              </div>
+              {% endfor %}
+            </div>
+          </article>
+        </div>
+      </section>
+      {% else %}
+      <section class="surface-card workspace-panel">
+        <header class="workspace-header">
+          <div>
+            <h1 class="page-title">{{ panel_title }}</h1>
+            <p class="page-copy">{{ panel_copy }}</p>
+          </div>
+          <a class="primary-button" href="{{ panel_action_url }}">{{ panel_action_label }}</a>
+        </header>
+
+        <section class="stats-grid compact-stats">
+          {% for item in panel_stats %}
+          <article class="stat-card">
+            <span class="stat-label">{{ item.label }}</span>
+            <strong class="stat-value">{{ item.value }}</strong>
+          </article>
+          {% endfor %}
+        </section>
+
+        <form class="search-row" method="get">
+          <input type="hidden" name="tab" value="{{ active_tab }}">
+          {% if selected_status %}
+          <input type="hidden" name="status" value="{{ selected_status }}">
+          {% endif %}
+          <input class="search-input" type="search" name="q" value="{{ query }}" placeholder="{{ search_placeholder }}">
+          <button class="search-button" type="submit">Search</button>
+        </form>
+
+        {% if status_filters %}
+        <div class="filter-pills">
+          {% for filter in status_filters %}
+          <a class="filter-pill {% if filter.active %}is-active{% endif %}" href="{{ filter.url }}">
+            <span>{{ filter.label }}</span>
+            <span class="filter-count">{{ filter.count }}</span>
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="table-responsive">
+          <table class="workspace-table">
+            <thead>
+              {% if active_tab == "tasks" %}
+              <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Deadline</th>
+                <th>Updated</th>
+                <th>Action</th>
+              </tr>
+              {% elif active_tab == "subtasks" %}
+              <tr>
+                <th>Title</th>
+                <th>Parent Task</th>
+                <th>Status</th>
+                <th>Updated</th>
+                <th>Action</th>
+              </tr>
+              {% elif active_tab == "categories" %}
+              <tr>
+                <th>Name</th>
+                <th>Tasks Linked</th>
+                <th>Open Tasks</th>
+                <th>Completed</th>
+                <th>Updated</th>
+                <th>Action</th>
+              </tr>
+              {% elif active_tab == "priorities" %}
+              <tr>
+                <th>Name</th>
+                <th>Tasks Linked</th>
+                <th>Open Tasks</th>
+                <th>Completed</th>
+                <th>Updated</th>
+                <th>Action</th>
+              </tr>
+              {% elif active_tab == "notes" %}
+              <tr>
+                <th>Task</th>
+                <th>Note</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>Action</th>
+              </tr>
+              {% endif %}
+            </thead>
+            <tbody>
+              {% if active_tab == "tasks" %}
+              {% for task in table_rows %}
+              <tr>
+                <td>
+                  <div class="row-title">{{ task.title }}</div>
+                  <div class="row-copy">{{ task.description|truncatechars:88 }}</div>
+                </td>
+                <td><span class="{{ task.status_badge }}">{{ task.status }}</span></td>
+                <td>{{ task.category.name }}</td>
+                <td><span class="{{ task.priority_badge }}">{{ task.priority.name|title }}</span></td>
+                <td>{{ task.deadline_local|date:"M d, Y" }} - {{ task.deadline_local|date:"h:i A" }}</td>
+                <td>{{ task.updated_at|date:"M d, Y" }} - {{ task.updated_at|date:"h:i A" }}</td>
+                <td><a class="action-button" href="{{ task.edit_url }}">Edit</a></td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7">
+                  <div class="empty-state">
+                    <p class="mb-0">No tasks match the current search or filter.</p>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+              {% elif active_tab == "subtasks" %}
+              {% for subtask in table_rows %}
+              <tr>
+                <td>{{ subtask.title }}</td>
+                <td>{{ subtask.parent_task.title }}</td>
+                <td><span class="{{ subtask.status_badge }}">{{ subtask.status }}</span></td>
+                <td>{{ subtask.updated_at|date:"M d, Y" }} - {{ subtask.updated_at|date:"h:i A" }}</td>
+                <td><a class="action-button" href="{{ subtask.edit_url }}">Edit</a></td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5">
+                  <div class="empty-state">
+                    <p class="mb-0">No subtasks match the current search or filter.</p>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+              {% elif active_tab == "categories" %}
+              {% for category in table_rows %}
+              <tr>
+                <td>{{ category.name }}</td>
+                <td>{{ category.task_count }}</td>
+                <td>{{ category.open_count }}</td>
+                <td>{{ category.completed_count }}</td>
+                <td>{{ category.updated_at|date:"M d, Y" }} - {{ category.updated_at|date:"h:i A" }}</td>
+                <td><a class="action-button" href="{{ category.edit_url }}">Edit</a></td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6">
+                  <div class="empty-state">
+                    <p class="mb-0">No categories match this search.</p>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+              {% elif active_tab == "priorities" %}
+              {% for priority in table_rows %}
+              <tr>
+                <td>{{ priority.name|title }}</td>
+                <td>{{ priority.task_count }}</td>
+                <td>{{ priority.open_count }}</td>
+                <td>{{ priority.completed_count }}</td>
+                <td>{{ priority.updated_at|date:"M d, Y" }} - {{ priority.updated_at|date:"h:i A" }}</td>
+                <td><a class="action-button" href="{{ priority.edit_url }}">Edit</a></td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6">
+                  <div class="empty-state">
+                    <p class="mb-0">No priorities match this search.</p>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+              {% elif active_tab == "notes" %}
+              {% for note in table_rows %}
+              <tr>
+                <td>
+                  <div class="row-title">{{ note.task.title }}</div>
+                  <div class="row-copy">{{ note.task.category.name }} &middot; {{ note.task.priority.name|title }}</div>
+                </td>
+                <td>{{ note.content|truncatechars:128 }}</td>
+                <td>{{ note.created_at|date:"M d, Y" }} - {{ note.created_at|date:"h:i A" }}</td>
+                <td>{{ note.updated_at|date:"M d, Y" }} - {{ note.updated_at|date:"h:i A" }}</td>
+                <td><a class="action-button" href="{{ note.edit_url }}">Edit</a></td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5">
+                  <div class="empty-state">
+                    <p class="mb-0">No notes match the current search.</p>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer">
+          <span>{{ table_count }} record{{ table_count|pluralize }}</span>
+          {% if pagination %}
+          <div class="table-footer-nav">
+            <span>{{ pagination.label }}</span>
+            {% if pagination.previous_url %}
+            <a class="ghost-button" href="{{ pagination.previous_url }}">Previous</a>
+            {% endif %}
+            {% if pagination.next_url %}
+            <a class="ghost-button" href="{{ pagination.next_url }}">Next</a>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </section>
+      {% endif %}
+    </main>
+</div>
+{% endblock %}

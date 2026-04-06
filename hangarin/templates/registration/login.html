@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Login | Hangarin{% endblock %}
+
+{% block app_css %}
+  <link rel="stylesheet" href="{% static 'hangarin/auth.css' %}">
+{% endblock %}
+
+{% block body_class %}auth-body{% endblock %}
+
+{% block body %}
+<main class="auth-shell">
+  <section class="auth-backdrop">
+    <div class="auth-overlay"></div>
+
+    <div class="auth-panel">
+      <div class="auth-panel-line"></div>
+
+      <div class="auth-header">
+        <p class="auth-brand">Hangarin</p>
+        <h1>Enter Dashboard</h1>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="auth-alert" role="alert">
+          {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" class="auth-form">
+        {% csrf_token %}
+
+        <div class="auth-field-group">
+          {{ form.username }}
+          {% if form.username.errors %}
+            <p class="auth-field-error">{{ form.username.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <div class="auth-field-group">
+          {{ form.password }}
+          {% if form.password.errors %}
+            <p class="auth-field-error">{{ form.password.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        {% if next %}
+          <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <button type="submit" class="auth-submit">Enter Dashboard</button>
+      </form>
+
+      <div class="auth-separator">
+        <span>OR</span>
+      </div>
+
+      <div class="auth-provider-stack">
+        {% if social_login_enabled %}
+          {% url 'dashboard' as dashboard_route %}
+          <form method="post" action="/accounts/google/login/?next={{ dashboard_route|urlencode }}" class="provider-form">
+            {% csrf_token %}
+            <button type="submit" class="provider-button">Continue with Google</button>
+          </form>
+          <form method="post" action="/accounts/github/login/?next={{ dashboard_route|urlencode }}" class="provider-form">
+            {% csrf_token %}
+            <button type="submit" class="provider-button">Continue with GitHub</button>
+          </form>
+        {% else %}
+          <button type="button" class="provider-button" disabled>Continue with Google</button>
+          <button type="button" class="provider-button" disabled>Continue with GitHub</button>
+        {% endif %}
+      </div>
+
+      {% if not social_login_enabled %}
+        <p class="auth-footnote">Google and GitHub sign-in are disabled until social login is enabled on the server.</p>
+      {% endif %}
+    </div>
+  </section>
+</main>
+{% endblock %}

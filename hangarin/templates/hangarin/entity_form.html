@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Hangarin Workspace{% endblock %}
+
+{% block body %}
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="sidebar-brand" href="{% url 'dashboard' %}">
+      <span class="sidebar-brand-mark">H</span>
+      <span class="sidebar-brand-text">
+        <span class="sidebar-brand-title">Hangarin</span>
+        <span class="sidebar-brand-copy">Task command workspace</span>
+      </span>
+    </a>
+
+    <section class="sidebar-panel">
+      <p class="sidebar-caption">Navigation</p>
+      <nav class="sidebar-nav">
+        <a class="sidebar-link" href="{% url 'dashboard' %}">
+          <span class="sidebar-link-dot"></span>
+          <span>Dashboard</span>
+        </a>
+        <a class="sidebar-link" href="{% url 'dashboard' %}?tab=tasks">
+          <span class="sidebar-link-dot"></span>
+          <span>Tasks</span>
+        </a>
+        <a class="sidebar-link" href="{% url 'dashboard' %}?tab=subtasks">
+          <span class="sidebar-link-dot"></span>
+          <span>Sub Tasks</span>
+        </a>
+        <a class="sidebar-link" href="{% url 'dashboard' %}?tab=categories">
+          <span class="sidebar-link-dot"></span>
+          <span>Categories</span>
+        </a>
+        <a class="sidebar-link" href="{% url 'dashboard' %}?tab=priorities">
+          <span class="sidebar-link-dot"></span>
+          <span>Priorities</span>
+        </a>
+        <a class="sidebar-link" href="{% url 'dashboard' %}?tab=notes">
+          <span class="sidebar-link-dot"></span>
+          <span>Notes</span>
+        </a>
+      </nav>
+    </section>
+  </aside>
+
+  <main class="workspace">
+    <header class="page-topbar">
+      <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-copy">{{ copy }}</p>
+      </div>
+      <div class="page-actions">
+        <a class="ghost-button" href="{{ cancel_url }}">Cancel</a>
+      </div>
+    </header>
+
+    <section class="workspace-panel">
+      <article class="surface-card" style="max-width: 600px; margin: 2rem auto; padding: 2rem;">
+        <form method="post">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          
+          {% for field in form %}
+            <div style="margin-bottom: 0.5rem;">
+              <label for="{{ field.id_for_label }}" style="font-weight: 500; font-size: 0.9rem; color: #a0a5ad; text-transform: uppercase; letter-spacing: 0.05em;">
+                {{ field.label }}
+              </label>
+              {{ field }}
+              {% if field.help_text %}
+                <p style="font-size: 0.8rem; color: #6e7582; margin-top: -0.5rem; margin-bottom: 0.5rem;">{{ field.help_text|safe }}</p>
+              {% endif %}
+              {% for error in field.errors %}
+                <p style="color: #ff6b6b; font-size: 0.85rem; margin-top: -0.5rem; margin-bottom: 0.5rem;">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endfor %}
+          
+          <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <a class="ghost-button" href="{{ cancel_url }}">Cancel</a>
+            <button class="primary-button" type="submit">Save Changes</button>
+          </div>
+        </form>
+      </article>
+    </section>
+  </main>
+</div>
+{% endblock %}
