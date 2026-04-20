@@ -1,11 +1,11 @@
 self.addEventListener('install', function(e) {
   e.waitUntil(
-    caches.open('projectsite-cache-v1').then(function(cache) {
+    caches.open('hangarin-cache-v1').then(function(cache) {
       return cache.addAll([
         '/',
         '/static/hangarin/dashboard.css',
-        '/static/img/icon-192.png',
-        '/static/img/icon-512.png',
+        '/static/hangarin/img/icon-192.png',
+        '/static/hangarin/img/icon-512.png',
       ]);
     })
   );

@@ -173,9 +173,9 @@ if SOCIAL_LOGIN_ENABLED:
         SOCIALACCOUNT_PROVIDERS["github"]["APPS"] = [github_app]
 
 # PWA Settings (Strictly following Tutorial Screenshots)
-PWA_APP_NAME = 'ProjectSite'
-PWA_APP_SHORT_NAME = 'ProjectSite'
-PWA_APP_DESCRIPTION = 'A Progressive Web App version of ProjectSite'
+PWA_APP_NAME = 'Hangarin'
+PWA_APP_SHORT_NAME = 'Hangarin'
+PWA_APP_DESCRIPTION = 'The official Hangarin Task & IP Management system.'
 PWA_APP_THEME_COLOR = '#0A0A0A'
 PWA_APP_BACKGROUND_COLOR = '#FFFFFF'
 PWA_APP_DISPLAY = 'standalone'
