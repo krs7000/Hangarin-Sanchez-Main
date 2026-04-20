@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local configuration file (SENSITIVE)
+.env
+
+# Database
+db.sqlite3
+
+# Static files
+staticfiles/
+
+# Virtual environment
+env/
+venv/
+.venv/
+hangarin-env/
+
+# OS generated files
+.DS_Store
+Thumbs.db
