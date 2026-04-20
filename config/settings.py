@@ -185,11 +185,11 @@ PWA_APP_START_URL = '/'
 PWA_APP_STATUS_BAR_COLOR = 'default'
 PWA_APP_ICONS = [
     {
-        'src': '/static/img/icon-192.png',
+        'src': '/static/hangarin/img/icon-192.png',
         'sizes': '192x192'
     },
     {
-        'src': '/static/img/icon-512.png',
+        'src': '/static/hangarin/img/icon-512.png',
         'sizes': '512x512'
     }
 ]
